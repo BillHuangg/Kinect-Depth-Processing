@@ -61,6 +61,7 @@ namespace KinectDepthImageProcessing
             //CompositionTarget.Rendering += CompositionTarget_Rendering;
 
             //建立后台数据处理线程
+            //
             backgroundWorker = new System.ComponentModel.BackgroundWorker();
             backgroundWorker.WorkerReportsProgress = true;
             backgroundWorker.WorkerSupportsCancellation = true;
