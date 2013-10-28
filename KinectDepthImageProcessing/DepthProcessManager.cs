@@ -107,6 +107,7 @@ namespace KinectDepthImageProcessing
             return temp;
         }
 
+
         public byte[] DrawLineProcessing(byte[] result, int cubeHeight, int cubeWidth, int lineColor, int lineWidth, int minColorByte, DepthImageFrame depthFrame)
         {
             for (int depthY = 0; depthY < depthFrame.Height; depthY++)
