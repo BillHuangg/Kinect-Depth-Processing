@@ -8,6 +8,7 @@ namespace KinectDepthImageProcessing
     class DepthProcessManager
     {
         private Int32 bytePerPixel = 4;
+        private Int32 minColorLimitation = 0;
 
         private bool isNotOutOfLimitation(int index,int min,int max)
         {
@@ -27,14 +28,14 @@ namespace KinectDepthImageProcessing
                 {
                     //this gray must be larger than minColorByte
                     //so that can draw the line the whole background
-                    gray = 40;
+                    gray = 22;
                     alpha = 255;
 
                 }
                 else
                 {
                     int temp = (depth / 100) % 10 / 3;
-                    gray = 255 - (temp * 50);
+                    gray = 255 - (temp * 20);
                     alpha = 255;
                 }
                 result[j] = (byte)gray;
@@ -44,10 +45,88 @@ namespace KinectDepthImageProcessing
 
 
             }
+            if (minColorLimitation <= 22)
+            {
+                minColorLimitation = 22;
+            }
             return result;
         }
 
 
+        //build and set dots 
+        public byte[] DrawDotsProcessing(byte[] temp ,Dot[] dots,int width, int height)
+        {
+            for (int i = 0; i < dots.Length; i++)
+            {
+                Dot dot = dots[i];
+                if (dot.dotState != DotState.BLANK && dot.dotState != DotState.DISAPPEAR)
+                {
+                    int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
+
+                    if (isNotOutOfLimitation(positionIndex, 0, temp.Length))
+                    {
+                        // b g r => yellow
+                        temp[positionIndex] = 111;
+                        temp[positionIndex + 1] = 247;
+                        temp[positionIndex + 2] = 236;
+                    }
+
+                }
+            }
+            return temp;
+        }
+        //detection for collision
+        public void DotsCollisionDetection(byte[] temp, Dot[] dots, int width, int height, int detectionLevel)
+        {
+            for (int i = 0; i < dots.Length; i++)
+            {
+                Dot dot = dots[i];
+                if (dot.dotState != DotState.BLANK
+                    && dot.dotState != DotState.DISAPPEAR
+                    && detectionLevel >= 1
+                    && detectionLevel <= 5)
+                {
+                    int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
+                    //temp[positionIndex]
+                    //int test = detectionLevel * dot.Length;
+                    if (CheckNearDifferentPixel(temp, positionIndex, detectionLevel, width, height))
+                    {
+                        dot.dotState = DotState.DISAPPEAR;
+                    }
+
+                }
+            }
+        }
+        //check the pixle
+        private bool CheckNearDifferentPixel(byte[] temp, int positionIndex, int detectionLevel,int width, int height)
+        {
+            //the cube length is 10  so the range must be 1 - 11 at least
+            int sensitivity =11 * detectionLevel;
+
+            bool isColliding = false;
+
+            //positionIndex += 3*bytePerPixel;
+
+            for (int i = 1; i < sensitivity; i++)
+            {
+                int checkIndex = positionIndex + i * width * bytePerPixel;
+                if(isNotOutOfLimitation(checkIndex,0,temp.Count()))
+                {
+                    if (temp[checkIndex] > minColorLimitation && temp[checkIndex] != 111)
+                    {
+                        isColliding = true;
+                        //if (temp[positionIndex] != temp[checkIndex]
+                        //    || temp[positionIndex + 1] != temp[checkIndex + 1]
+                        //    || temp[positionIndex + 2] != temp[checkIndex + 2])
+                        //{
+                        //    isColliding = true;
+                        //    break;
+                        //}
+                    }
+                }
+            }
+            return isColliding;
+        }
 
         //马赛克处理
         public byte[] MosaicProcessing(byte[] temp, int val, int width, int height)
@@ -164,6 +243,11 @@ namespace KinectDepthImageProcessing
                         }
                     }
                 }
+            }
+
+            if (minColorLimitation <= lineColor)
+            {
+                minColorLimitation = lineColor;
             }
 
             return result;

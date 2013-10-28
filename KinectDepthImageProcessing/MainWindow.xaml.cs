@@ -21,26 +21,7 @@ namespace KinectDepthImageProcessing
     /// </summary>
     public partial class MainWindow : Window
     {
-        //process imageBitMap
-        ///1
-        private WriteableBitmap processImageBitMap_1;
-        private Int32Rect processImageBitmapRect_1;
-        private Int32 processImageStride_1;
-        ///2
-        private WriteableBitmap processImageBitMap_2;
-        private Int32Rect processImageBitmapRect_2;
-        private Int32 processImageStride_2;
-        ///3
-        private WriteableBitmap processImageBitMap_3;
-        private Int32Rect processImageBitmapRect_3;
-        private Int32 processImageStride_3;
-        //
-        int DepthStreamFrameWidth = 0;
-        int DepthStreamFrameHeight = 0;
-        int DepthStreamFramePixelDataLength = 0;
-
-        //store each frame depth data for all kinects
-        private short[] depthPixelData;
+        
 
         //process manager
         private DepthProcessManager depthProcessManager;
@@ -52,6 +33,8 @@ namespace KinectDepthImageProcessing
         private List <KinectSensor> KinectArray;
 
         private int MAX_KINECT_NUM = 1;
+
+        private Dot[] DotsArray;
 
         public MainWindow()
         {
@@ -74,6 +57,10 @@ namespace KinectDepthImageProcessing
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             depthProcessManager = new DepthProcessManager();
+
+            DotsArray = new Dot[4];
+            initDotsArray();
+
         }
 
         //the background thread for process data
@@ -190,7 +177,7 @@ namespace KinectDepthImageProcessing
                 DepthImageStream depthStream = kinectSensor.DepthStream;
 
                 //正常运行: format Resolution640x480Fps30
-                depthStream.Enable(DepthImageFormat.Resolution640x480Fps30);
+                depthStream.Enable(DepthImageFormat.Resolution320x240Fps30);
 
                 DepthStreamFrameWidth = depthStream.FrameWidth;
                 DepthStreamFrameHeight = depthStream.FrameHeight;
@@ -213,136 +200,136 @@ namespace KinectDepthImageProcessing
             }
         }
 
-        private void initProcessImagesArray(int kinectID)
-        {
-            this.processImage_1.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                //初始化UI image 载体数据
-                processImageBitMap_1 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
-                                                                            PixelFormats.Bgr32, null);
-                processImageBitmapRect_1 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
-                processImageStride_1 = DepthStreamFrameWidth * bytePerPixel;
-                processImage_1.Source = processImageBitMap_1;
-            }));
+        //private void initProcessImagesArray(int kinectID)
+        //{
+        //    this.processImage_1.Dispatcher.BeginInvoke(new Action(() =>
+        //    {
+        //        //初始化UI image 载体数据
+        //        processImageBitMap_1 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
+        //                                                                    PixelFormats.Bgr32, null);
+        //        processImageBitmapRect_1 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
+        //        processImageStride_1 = DepthStreamFrameWidth * bytePerPixel;
+        //        processImage_1.Source = processImageBitMap_1;
+        //    }));
 
-            this.processImage_2.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                //初始化UI image 载体数据
-                processImageBitMap_2 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
-                                                                            PixelFormats.Bgr32, null);
-                processImageBitmapRect_2 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
-                processImageStride_2 = DepthStreamFrameWidth * bytePerPixel;
-                processImage_2.Source = processImageBitMap_2;
-            }));
-            this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                //初始化UI image 载体数据
-                processImageBitMap_3 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
-                                                                            PixelFormats.Bgr32, null);
-                processImageBitmapRect_3 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
-                processImageStride_3 = DepthStreamFrameWidth * bytePerPixel;
-                processImage_3.Source = processImageBitMap_3;
-            }));
-        }
-        private void initDataArray()
-        {
-            //预先初始化原始深度数据数组
-            depthPixelData = new short[DepthStreamFramePixelDataLength];
+        //    this.processImage_2.Dispatcher.BeginInvoke(new Action(() =>
+        //    {
+        //        //初始化UI image 载体数据
+        //        processImageBitMap_2 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
+        //                                                                    PixelFormats.Bgr32, null);
+        //        processImageBitmapRect_2 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
+        //        processImageStride_2 = DepthStreamFrameWidth * bytePerPixel;
+        //        processImage_2.Source = processImageBitMap_2;
+        //    }));
+        //    this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
+        //    {
+        //        //初始化UI image 载体数据
+        //        processImageBitMap_3 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
+        //                                                                    PixelFormats.Bgr32, null);
+        //        processImageBitmapRect_3 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
+        //        processImageStride_3 = DepthStreamFrameWidth * bytePerPixel;
+        //        processImage_3.Source = processImageBitMap_3;
+        //    }));
+        //}
+        //private void initDataArray()
+        //{
+        //    //预先初始化原始深度数据数组
+        //    depthPixelData = new short[DepthStreamFramePixelDataLength];
 
-            //预先初始化图像处理数据数组
-            //或不需建立 直接于处理函数中建立局部变量即可
-            //效率问题
-            //enhPixelData = new byte[DepthStreamFrameWidth * DepthStreamFrameHeight * bytePerPixel];
-        }
+        //    //预先初始化图像处理数据数组
+        //    //或不需建立 直接于处理函数中建立局部变量即可
+        //    //效率问题
+        //    //enhPixelData = new byte[DepthStreamFrameWidth * DepthStreamFrameHeight * bytePerPixel];
+        //}
 
 
-        void DepthFrameReadyToProcess(DepthImageFrame temp,int kinectID)
-        {
+        //void DepthFrameReadyToProcess(DepthImageFrame temp,int kinectID)
+        //{
 
-            DepthImageFrame lastDepthFrame = temp;
+        //    DepthImageFrame lastDepthFrame = temp;
 
-            if (lastDepthFrame != null)
-            {
-                //depthPixelData = new short[lastDepthFrame.PixelDataLength];
-                lastDepthFrame.CopyPixelDataTo(depthPixelData);
+        //    if (lastDepthFrame != null)
+        //    {
+        //        //depthPixelData = new short[lastDepthFrame.PixelDataLength];
+        //        lastDepthFrame.CopyPixelDataTo(depthPixelData);
 
-                //处理数据并显示
-                DataProcess(lastDepthFrame, depthPixelData,kinectID);
+        //        //处理数据并显示
+        //        DataProcess(lastDepthFrame, depthPixelData,kinectID);
 
-            }
-        }
+        //    }
+        //}
 
-        //颜色模式: rgba32
-        //正常运行: format Resolution640x480Fps30
-        //          cubeWidth=cubeHeight=30 lineWidth=5
+        ////颜色模式: rgba32
+        ////正常运行: format Resolution640x480Fps30
+        ////          cubeWidth=cubeHeight=30 lineWidth=5
 
-        //景深范围
-        Int32 loThreashold = 2000;
-        Int32 hiThreshold = 2800;
+        ////景深范围
+        //Int32 loThreashold = 2000;
+        //Int32 hiThreshold = 2800;
 
-        //像素格式大小
-        Int32 bytePerPixel = 4;
+        ////像素格式大小
+        //Int32 bytePerPixel = 4;
 
-        //方格尺寸
-        int cubeWidth = 30;
-        int cubeHeight = 30;
+        ////方格尺寸
+        //int cubeWidth = 10;
+        //int cubeHeight = 10;
 
-        //线颜色
-        int lineColor = 0;
+        ////线颜色
+        //int lineColor = 0;
 
-        //线宽度
-        int lineWidth = 5;
+        ////线宽度
+        //int lineWidth = 1;
 
-        //最低可认的像素颜色界限
-        int minColorByte = 30;
+        ////最低可认的像素颜色界限
+        //int minColorByte = 30;
 
-        private void DataProcess(DepthImageFrame depthFrame, short[] pixelData, int kinectID)
-        {
-            //直接建立局部变量
-            byte[] enhPixelData = new byte[depthFrame.Width * depthFrame.Height * bytePerPixel];
+        //private void DataProcess(DepthImageFrame depthFrame, short[] pixelData, int kinectID)
+        //{
+        //    //直接建立局部变量
+        //    byte[] enhPixelData = new byte[depthFrame.Width * depthFrame.Height * bytePerPixel];
 
-            //基础景深范围限定 并 处理
-            enhPixelData = depthProcessManager.BasicDepthProcessing(enhPixelData, pixelData, depthFrame, loThreashold, hiThreshold);
+        //    //基础景深范围限定 并 处理
+        //    enhPixelData = depthProcessManager.BasicDepthProcessing(enhPixelData, pixelData, depthFrame, loThreashold, hiThreshold);
             
-            //像素马赛克化
-            enhPixelData = depthProcessManager.MosaicProcessing(enhPixelData, cubeWidth, depthFrame.Width, depthFrame.Height);
+        //    //像素马赛克化
+        //    enhPixelData = depthProcessManager.MosaicProcessing(enhPixelData, cubeWidth, depthFrame.Width, depthFrame.Height);
 
-            //绘制线 //方格
-            enhPixelData = depthProcessManager.DrawLineProcessing(enhPixelData, cubeHeight, cubeWidth, lineColor, lineWidth, minColorByte, depthFrame);
+        //    //绘制线 //方格
+        //    enhPixelData = depthProcessManager.DrawLineProcessing(enhPixelData, cubeHeight, cubeWidth, lineColor, lineWidth, minColorByte, depthFrame);
 
-            //绘制图像
-            switch (kinectID)
-            {
-                case 0:
-                    this.processImage_1.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        //直接 new bitmap, 赋予processImage
-                        //processImage_1.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
-                        //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
-                        processImageBitMap_1.WritePixels(processImageBitmapRect_1, enhPixelData, processImageStride_1, 0);
-                    }));
-                    break;
-                case 1:
-                    this.processImage_2.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        //直接 new bitmap, 赋予processImage
-                        //processImage_2.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
-                        //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
-                        processImageBitMap_2.WritePixels(processImageBitmapRect_2, enhPixelData, processImageStride_2, 0);
-                    }));
-                    break;
-                case 2:
-                    this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        //直接 new bitmap, 赋予processImage
-                        //processImage_2.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
-                        //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
-                        processImageBitMap_3.WritePixels(processImageBitmapRect_3, enhPixelData, processImageStride_3, 0);
-                    }));
-                    break;
+        //    //绘制图像
+        //    switch (kinectID)
+        //    {
+        //        case 0:
+        //            this.processImage_1.Dispatcher.BeginInvoke(new Action(() =>
+        //            {
+        //                //直接 new bitmap, 赋予processImage
+        //                //processImage_1.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
+        //                //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
+        //                processImageBitMap_1.WritePixels(processImageBitmapRect_1, enhPixelData, processImageStride_1, 0);
+        //            }));
+        //            break;
+        //        case 1:
+        //            this.processImage_2.Dispatcher.BeginInvoke(new Action(() =>
+        //            {
+        //                //直接 new bitmap, 赋予processImage
+        //                //processImage_2.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
+        //                //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
+        //                processImageBitMap_2.WritePixels(processImageBitmapRect_2, enhPixelData, processImageStride_2, 0);
+        //            }));
+        //            break;
+        //        case 2:
+        //            this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
+        //            {
+        //                //直接 new bitmap, 赋予processImage
+        //                //processImage_2.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
+        //                //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
+        //                processImageBitMap_3.WritePixels(processImageBitmapRect_3, enhPixelData, processImageStride_3, 0);
+        //            }));
+        //            break;
 
-            }
-        }
+        //    }
+        //}
 
 
 

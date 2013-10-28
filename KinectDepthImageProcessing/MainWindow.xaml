@@ -1,14 +1,16 @@
 ﻿<Window x:Class="KinectDepthImageProcessing.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="KinectProcessing" Height="600" Width="1600" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
-    <Grid>
+        Title="KinectProcessing"   WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" WindowState="Maximized" Background="Black">
+    <Viewbox>
+    <Grid >
         <StackPanel Orientation="Horizontal">
             <!--<TextBlock x:Name="PixelDepth" FontSize="48" HorizontalAlignment="Left"  />-->
-            <Image x:Name="processImage_1" ></Image>
+            <Image x:Name="processImage_1" Source="bg.png"/>
             <!--Image x:Name="bg" Source="bg.png" Width="640" Height="480" /-->
-            <Image x:Name="processImage_2"  />
-            <Image x:Name="processImage_3"  />
+            <Image x:Name="processImage_2" Source="bg.png" />
+            <Image x:Name="processImage_3" Source="bg.png" />
         </StackPanel>
     </Grid>
+    </Viewbox>
 </Window>
