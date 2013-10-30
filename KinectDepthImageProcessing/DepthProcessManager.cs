@@ -89,7 +89,7 @@ namespace KinectDepthImageProcessing
                     int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
                     //temp[positionIndex]
                     //int test = detectionLevel * dot.Length;
-                    if (CheckNearDifferentPixel(temp, positionIndex, detectionLevel, width, height))
+                    if (CheckNearDifferentPixel(temp, positionIndex, detectionLevel, width, height,dot.Length))
                     {
                         dot.dotState = DotState.DISAPPEAR;
                     }
@@ -98,10 +98,10 @@ namespace KinectDepthImageProcessing
             }
         }
         //check the pixle
-        private bool CheckNearDifferentPixel(byte[] temp, int positionIndex, int detectionLevel,int width, int height)
+        private bool CheckNearDifferentPixel(byte[] temp, int positionIndex, int detectionLevel,int width, int height,int length)
         {
             //the cube length is 10  so the range must be 1 - 11 at least
-            int sensitivity =11 * detectionLevel;
+            int sensitivity = (length + 1) * detectionLevel;
 
             bool isColliding = false;
 

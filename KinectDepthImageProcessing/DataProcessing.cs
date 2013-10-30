@@ -54,20 +54,20 @@ namespace KinectDepthImageProcessing
         Int32 bytePerPixel = 4;
 
         //方格尺寸
-        int cubeWidth = 10;
-        int cubeHeight = 10;
+        int cubeWidth = 8;
+        int cubeHeight = 8;
 
         //线颜色
         int lineColor = 0;
 
         //线宽度
-        int lineWidth = 1;
+        int lineWidth = 0;
 
         //最低可认的像素颜色界限
         int minColorByte = 20;
 
         //dot height
-        int dotY = 70;
+        int dotY = 0;
 
         private void initProcessImagesArray(int kinectID)
         {
@@ -113,10 +113,11 @@ namespace KinectDepthImageProcessing
 
         private void initDotsArray()
         {
+            dotY = cubeWidth * 5;
             //DotsArray
             for(int i=0;i<DotsArray.Length;i++)
             {
-                DotsArray[i] = new Dot((i+1) * 100, dotY, 10);
+                DotsArray[i] = new Dot((i + 1) * cubeWidth*4, dotY, cubeWidth);
             }
         }
 
@@ -156,7 +157,7 @@ namespace KinectDepthImageProcessing
             enhPixelData = depthProcessManager.MosaicProcessing(enhPixelData, cubeWidth, depthFrame.Width, depthFrame.Height);
 
             //dot collision detection
-            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArray, depthFrame.Width, depthFrame.Height, 1);
+            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArray, depthFrame.Width, depthFrame.Height, 2);
 
             //绘制线 //方格
             enhPixelData = depthProcessManager.DrawLineProcessing(enhPixelData, cubeHeight, cubeWidth, lineColor, lineWidth, minColorByte, depthFrame);

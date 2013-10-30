@@ -58,7 +58,7 @@ namespace KinectDepthImageProcessing
         {
             depthProcessManager = new DepthProcessManager();
 
-            DotsArray = new Dot[4];
+            DotsArray = new Dot[8];
             initDotsArray();
 
         }
@@ -99,16 +99,17 @@ namespace KinectDepthImageProcessing
                     if (KinectArray[i].Status != KinectStatus.Connected)
                     {
                         isUnConnected = true;
-                        break;
+                        //UninitializeKinectSensor(KinectArray[i]);
+                        //break;
                     }
                 }
-                if (isUnConnected)
-                {
-                    for (int i = 0; i < KinectArray.Count; i++)
-                    {
-                        UninitializeKinectSensor(KinectArray[i]);
-                    }
-                }
+                //if (isUnConnected)
+                //{
+                //    for (int i = 0; i < KinectArray.Count; i++)
+                //    {
+                //        UninitializeKinectSensor(KinectArray[i]);
+                //    }
+                //}
             }
 
             if (KinectArray.Count == 0)
@@ -198,6 +199,11 @@ namespace KinectDepthImageProcessing
             {
                 kinect.Stop();
             }
+        }
+
+        private void processImage_1_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+
         }
 
         //private void initProcessImagesArray(int kinectID)
