@@ -117,7 +117,7 @@ namespace KinectDepthImageProcessing
             //DotsArray
             for(int i=0;i<DotsArray.Length;i++)
             {
-                DotsArray[i] = new Dot((i + 1) * cubeWidth*4, dotY, cubeWidth);
+                DotsArray[i] = new Dot((i + 1) * cubeWidth*4, dotY, cubeWidth,3);
             }
         }
 
@@ -157,7 +157,7 @@ namespace KinectDepthImageProcessing
             enhPixelData = depthProcessManager.MosaicProcessing(enhPixelData, cubeWidth, depthFrame.Width, depthFrame.Height);
 
             //dot collision detection
-            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArray, depthFrame.Width, depthFrame.Height, 2);
+            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArray, depthFrame.Width, depthFrame.Height, 4);
 
             //绘制线 //方格
             enhPixelData = depthProcessManager.DrawLineProcessing(enhPixelData, cubeHeight, cubeWidth, lineColor, lineWidth, minColorByte, depthFrame);
@@ -195,7 +195,9 @@ namespace KinectDepthImageProcessing
 
             }
 
+
             int countDisappearDot = 0;
+
             //恢复所有点
             for (int i = 0; i < DotsArray.Length; i++)
             {

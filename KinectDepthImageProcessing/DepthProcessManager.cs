@@ -8,14 +8,24 @@ namespace KinectDepthImageProcessing
     class DepthProcessManager
     {
         private Int32 bytePerPixel = 4;
+
+        //get the min color limitation for distinguish the background , line and the people image.
         private Int32 minColorLimitation = 0;
 
         private bool isNotOutOfLimitation(int index,int min,int max)
         {
-            return (index >= min && index < max);
+            return (index >= min && index <= max);
         }
 
-        //基础景深数据处理
+        /// <summary>
+        /// basic depth data processing
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="original"></param>
+        /// <param name="depthFrame"></param>
+        /// <param name="loThreashold"></param>
+        /// <param name="hiThreshold"></param>
+        /// <returns></returns>
         public byte[] BasicDepthProcessing(byte[] result, short[] original, DepthImageFrame depthFrame, Int32 loThreashold, Int32 hiThreshold)
         {
             Int32 depth;
@@ -45,6 +55,7 @@ namespace KinectDepthImageProcessing
 
 
             }
+            //get the min color limitation for distinguish the background , line and the people image.
             if (minColorLimitation <= 22)
             {
                 minColorLimitation = 22;
@@ -53,7 +64,14 @@ namespace KinectDepthImageProcessing
         }
 
 
-        //build and set dots 
+        /// <summary>
+        /// build and set dots 
+        /// </summary>
+        /// <param name="temp"></param>
+        /// <param name="dots"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public byte[] DrawDotsProcessing(byte[] temp ,Dot[] dots,int width, int height)
         {
             for (int i = 0; i < dots.Length; i++)
@@ -61,21 +79,42 @@ namespace KinectDepthImageProcessing
                 Dot dot = dots[i];
                 if (dot.dotState != DotState.BLANK && dot.dotState != DotState.DISAPPEAR)
                 {
-                    int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
+                    //int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
 
-                    if (isNotOutOfLimitation(positionIndex, 0, temp.Length))
+                    //get the dot postion in the left top of the big dot
+                    //int leftTopPositionIndex = (dot.XPosition - dot.BlockNum / 2 * dot.BlockLength + ((dot.YPosition - dot.BlockNum / 2 * dot.BlockLength) * width)) * bytePerPixel;
+                    int leftTopDotPositionX = dot.XPosition - dot.BlockNum / 2* dot.BlockLength;
+                    int leftTopDotPositionY = dot.YPosition - dot.BlockNum / 2 * dot.BlockLength;
+                    for (int y = 0; y < dot.BlockNum; y++)
                     {
-                        // b g r => yellow
-                        temp[positionIndex] = 111;
-                        temp[positionIndex + 1] = 247;
-                        temp[positionIndex + 2] = 236;
+                        for (int x = 0; x < dot.BlockNum; x++)
+                        {
+                            int positionIndex = (leftTopDotPositionX + x * dot.BlockLength + ((leftTopDotPositionY + y * dot.BlockLength) * width)) * bytePerPixel;
+                            if (isNotOutOfLimitation(positionIndex, 0, temp.Length))
+                            {
+                                // b g r => yellow
+                                temp[positionIndex] = 111;
+                                temp[positionIndex + 1] = 247;
+                                temp[positionIndex + 2] = 236;
+                            }
+                        }
                     }
+
+                        
 
                 }
             }
             return temp;
         }
-        //detection for collision
+        /// <summary>
+        /// detection for collision : 
+        /// the larger detectionLevel, the higher sensitivity
+        /// </summary>
+        /// <param name="temp"></param>
+        /// <param name="dots"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="detectionLevel"></param>
         public void DotsCollisionDetection(byte[] temp, Dot[] dots, int width, int height, int detectionLevel)
         {
             for (int i = 0; i < dots.Length; i++)
@@ -89,7 +128,7 @@ namespace KinectDepthImageProcessing
                     int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
                     //temp[positionIndex]
                     //int test = detectionLevel * dot.Length;
-                    if (CheckNearDifferentPixel(temp, positionIndex, detectionLevel, width, height,dot.Length))
+                    if (CheckNearDifferentPixel(temp, positionIndex, detectionLevel, width, height,dot.BlockLength))
                     {
                         dot.dotState = DotState.DISAPPEAR;
                     }
@@ -97,7 +136,17 @@ namespace KinectDepthImageProcessing
                 }
             }
         }
-        //check the pixle
+        /// <summary>
+        /// check the pixle
+        /// 
+        /// </summary>
+        /// <param name="temp"></param>
+        /// <param name="positionIndex"></param>
+        /// <param name="detectionLevel"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="length">line lenght of each block </param>
+        /// <returns></returns>
         private bool CheckNearDifferentPixel(byte[] temp, int positionIndex, int detectionLevel,int width, int height,int length)
         {
             //the cube length is 10  so the range must be 1 - 11 at least
@@ -128,7 +177,15 @@ namespace KinectDepthImageProcessing
             return isColliding;
         }
 
-        //马赛克处理
+        /// <summary>
+        /// MosaicProcessing:
+        /// change pixel to a big block moasaic
+        /// </summary>
+        /// <param name="temp"></param>
+        /// <param name="val"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public byte[] MosaicProcessing(byte[] temp, int val, int width, int height)
         {
 
@@ -148,9 +205,21 @@ namespace KinectDepthImageProcessing
 
                     if ( isNotOutOfLimitation( depthPixelIndex, 0, temp.Count() ))
                     {
-                        if (y % val == 0)
+                        //补足深度图最左无法识别问题
+                        if (y == 0 || y % val == 0)
                         {
-                            if (x % val == 0)
+                            if (x == 0)
+                            {
+                                int tempIndex = (x + 4 + (y * width)) * bytePerPixel;
+                                temp[depthPixelIndex] = temp[tempIndex];
+                                temp[depthPixelIndex + 1] = temp[tempIndex + 1];
+                                temp[depthPixelIndex + 2] = temp[tempIndex + 2];
+                            }
+                        }
+
+                        if (y % val == 0  )
+                        {
+                            if (x % val == 0  )
                             {
                                 stdB = temp[depthPixelIndex];
                                 stdG = temp[depthPixelIndex + 1];
@@ -165,18 +234,19 @@ namespace KinectDepthImageProcessing
                                 //temp[depthPixelIndex + 3] = (byte)stdA;
                             }
                         }
+                        
                         else
                         {
                             // 复制上一行
                             int upPixelIndex = depthPixelIndex - width * bytePerPixel;
 
-                            if ( isNotOutOfLimitation( upPixelIndex, 0, temp.Count() ))
+                            if (isNotOutOfLimitation(upPixelIndex, 0, temp.Count()))
                             {
                                 temp[depthPixelIndex] = temp[upPixelIndex];
                                 temp[depthPixelIndex + 1] = temp[upPixelIndex + 1];
                                 temp[depthPixelIndex + 2] = temp[upPixelIndex + 2];
                                 //temp[depthPixelIndex + 3] = temp[upPixelIndex + 3];
-                                  
+
                             }
                         }
                     }
@@ -186,6 +256,17 @@ namespace KinectDepthImageProcessing
             return temp;
         }
 
+        /// <summary>
+        /// draw lines 
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="cubeHeight"></param>
+        /// <param name="cubeWidth"></param>
+        /// <param name="lineColor"></param>
+        /// <param name="lineWidth"></param>
+        /// <param name="minColorByte"></param>
+        /// <param name="depthFrame"></param>
+        /// <returns></returns>
         public byte[] DrawLineProcessing(byte[] result, int cubeHeight, int cubeWidth, int lineColor, int lineWidth, int minColorByte, DepthImageFrame depthFrame)
         {
             for (int depthY = 0; depthY < depthFrame.Height; depthY++)
@@ -245,6 +326,7 @@ namespace KinectDepthImageProcessing
                 }
             }
 
+            //get the min color limitation for distinguish the background , line and the people image.
             if (minColorLimitation <= lineColor)
             {
                 minColorLimitation = lineColor;

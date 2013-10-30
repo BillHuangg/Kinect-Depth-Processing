@@ -23,20 +23,23 @@ namespace KinectDepthImageProcessing
     {
         private int my_x;
         private int my_y;
-        private int my_length;
+        private int my_EachBlocklength;
+        private int my_EachLineBlockNums;  //
         private DotState my_state;
         public Dot()
         {
             my_x = 0;
             my_y = 0;
-            my_length = 0;
+            my_EachBlocklength = 0;
+            my_EachLineBlockNums = 1;
             my_state = DotState.BLANK;
         }
-        public Dot(int x, int y, int length)
+        public Dot(int x, int y, int length,int num)
         {
             my_x = x;
             my_y = y;
-            my_length = length;
+            my_EachBlocklength = length;
+            my_EachLineBlockNums = num;
             my_state = DotState.WAIT;
         }
 
@@ -64,19 +67,30 @@ namespace KinectDepthImageProcessing
                 my_state = DotState.WAIT;
             }
         }
-        public int Length
+        public int BlockLength
         {
             get
             {
-                return my_length;
+                return my_EachBlocklength;
             }
             set
             {
-                my_length = value;
+                my_EachBlocklength = value;
                 my_state = DotState.WAIT;
             }
         }
-
+        public int BlockNum
+        {
+            get
+            {
+                return my_EachLineBlockNums;
+            }
+            set
+            {
+                my_EachLineBlockNums = value;
+                my_state = DotState.WAIT;
+            }
+        }
         public DotState dotState
         {
             get
