@@ -35,6 +35,7 @@ namespace KinectDepthImageProcessing
         private int MAX_KINECT_NUM = 1;
 
         private Dot[] DotsArray;
+        private List<Dot[]> DotsArrayList;
 
         public MainWindow()
         {
@@ -57,9 +58,14 @@ namespace KinectDepthImageProcessing
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             depthProcessManager = new DepthProcessManager();
+            DotsArrayList=new List<Dot[]>();
+            for (int i = 0; i < 3; i++)
+            {
+                Dot[] tempArray = new Dot[5];
+                DotsArrayList.Add(initDotsArray(tempArray));
 
-            DotsArray = new Dot[8];
-            initDotsArray();
+            }
+                
 
         }
 
@@ -153,7 +159,7 @@ namespace KinectDepthImageProcessing
                 {
                     for (int i = 0; i < KinectArray.Count; i++)
                     {
-                        using (DepthImageFrame frame = KinectArray[i].DepthStream.OpenNextFrame(1))
+                        using (DepthImageFrame frame = KinectArray[i].DepthStream.OpenNextFrame(-1))
                         {
                             if (frame != null)
                             {

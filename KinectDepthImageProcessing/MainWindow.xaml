@@ -23,14 +23,14 @@
                         </TransformGroup>
                     </Image.RenderTransform>
                 </Image>
-                <Image x:Name="processImage_3" Source="bg.png">
+                <!--<Image x:Name="processImage_3" Source="bg.png">
                     <Image.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform ScaleX="-1" ScaleY="1"/>
                             <TranslateTransform X="320"></TranslateTransform>
                         </TransformGroup>
                     </Image.RenderTransform>
-                </Image>
+                </Image>-->
             </StackPanel>
     </Grid>
     </Viewbox>

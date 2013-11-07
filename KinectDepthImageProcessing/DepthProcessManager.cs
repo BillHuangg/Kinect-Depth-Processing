@@ -44,9 +44,21 @@ namespace KinectDepthImageProcessing
                 }
                 else
                 {
-                    int temp = (depth / 100) % 10 / 3;
+                    //int temp = (depth / 100) % 10 / 3;
+                    int temp = 0;
                     gray = 255 - (temp * 20);
                     alpha = 255;
+
+                    //从左到右获取边缘数据 
+                    if ((i + 1) < original.Count())
+                    {
+                        Int32 nextdepth = original[i + 1] >> DepthImageFrame.PlayerIndexBitmaskWidth;
+                        if (nextdepth < loThreashold || nextdepth > hiThreshold)
+                        {
+                            gray = 22;
+                            alpha = 255;
+                        }
+                    }
                 }
                 result[j] = (byte)gray;
                 result[j + 1] = (byte)gray;
@@ -61,6 +73,42 @@ namespace KinectDepthImageProcessing
                 minColorLimitation = 22;
             }
             return result;
+        }
+        public byte[] OptimizeDepthProcessing(byte[] result, DepthImageFrame depthFrame)
+        {
+            List<int> indexArray = new List<int>();
+            for (int depthY = 0; depthY < depthFrame.Height; depthY++)
+            {
+                for (int depthX = 0; depthX < depthFrame.Width; depthX++)
+                {
+                    //排除边缘像素点
+                    if (depthX > 6)
+                    {
+                        int depthPixelIndex = (depthX + (depthY * depthFrame.Width)) * bytePerPixel;
+
+                        if (isNotOutOfLimitation(depthPixelIndex, 10, result.Count() - 10))
+                        {
+                            if ((result[depthPixelIndex + 1 * bytePerPixel] <= minColorLimitation
+                                || result[depthPixelIndex - 1 * bytePerPixel] <= minColorLimitation)
+                                && result[depthPixelIndex] == 255)
+                            {
+                                indexArray.Add(depthPixelIndex);
+                                //result[depthPixelIndex] = 22;
+                                //result[depthPixelIndex + 1] = 22;
+                                //result[depthPixelIndex + 2] = 22;
+                            }
+                        }
+                    }
+                }  
+            }
+            for (int i = 0; i < indexArray.Count; i++)
+            {
+                int index = indexArray[i];
+                result[index] = 22;
+                result[index + 1] = 22;
+                result[index + 2] = 22;
+            }
+                return result;
         }
 
 
@@ -99,13 +147,15 @@ namespace KinectDepthImageProcessing
                             }
                         }
                     }
-
-                        
-
                 }
             }
             return temp;
         }
+
+
+
+
+
         /// <summary>
         /// detection for collision : 
         /// the larger detectionLevel, the higher sensitivity
@@ -210,7 +260,7 @@ namespace KinectDepthImageProcessing
                         {
                             if (x == 0)
                             {
-                                int tempIndex = (x + 4 + (y * width)) * bytePerPixel;
+                                int tempIndex = (x + 5 + (y * width)) * bytePerPixel;
                                 temp[depthPixelIndex] = temp[tempIndex];
                                 temp[depthPixelIndex + 1] = temp[tempIndex + 1];
                                 temp[depthPixelIndex + 2] = temp[tempIndex + 2];
@@ -221,6 +271,19 @@ namespace KinectDepthImageProcessing
                         {
                             if (x % val == 0  )
                             {
+                                //int average = 0;
+                                //for (int a = 0; a < val; a++)
+                                //{
+                                //    for (int b = 0; b < val; b++)
+                                //    {
+                                //        int Index = (x+b + ((y+a) * width)) * bytePerPixel;
+                                //        average += temp[Index];
+                                //    }
+                                //}
+                                //if (average/(val*val) < 200)
+                                //{
+                                //    break;
+                                //}
                                 stdB = temp[depthPixelIndex];
                                 stdG = temp[depthPixelIndex + 1];
                                 stdR = temp[depthPixelIndex + 2];
@@ -252,6 +315,7 @@ namespace KinectDepthImageProcessing
                     }
                 } // end of x
             } // end of y
+
 
             return temp;
         }

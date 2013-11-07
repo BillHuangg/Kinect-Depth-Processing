@@ -47,8 +47,8 @@ namespace KinectDepthImageProcessing
         //          cubeWidth=cubeHeight=30 lineWidth=5
 
         //景深范围
-        Int32 loThreashold = 1800;
-        Int32 hiThreshold = 2800;
+        Int32 loThreashold = 1900;
+        Int32 hiThreshold = 2900;
 
         //像素格式大小
         Int32 bytePerPixel = 4;
@@ -66,8 +66,7 @@ namespace KinectDepthImageProcessing
         //最低可认的像素颜色界限
         int minColorByte = 20;
 
-        //dot height
-        int dotY = 0;
+
 
         private void initProcessImagesArray(int kinectID)
         {
@@ -90,15 +89,15 @@ namespace KinectDepthImageProcessing
                 processImageStride_2 = DepthStreamFrameWidth * bytePerPixel;
                 processImage_2.Source = processImageBitMap_2;
             }));
-            this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                //初始化UI image 载体数据
-                processImageBitMap_3 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
-                                                                            PixelFormats.Bgr32, null);
-                processImageBitmapRect_3 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
-                processImageStride_3 = DepthStreamFrameWidth * bytePerPixel;
-                processImage_3.Source = processImageBitMap_3;
-            }));
+            //this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
+            //{
+            //    //初始化UI image 载体数据
+            //    processImageBitMap_3 = new WriteableBitmap(DepthStreamFrameWidth, DepthStreamFrameHeight, 96, 96,
+            //                                                                PixelFormats.Bgr32, null);
+            //    processImageBitmapRect_3 = new Int32Rect(0, 0, DepthStreamFrameWidth, DepthStreamFrameHeight);
+            //    processImageStride_3 = DepthStreamFrameWidth * bytePerPixel;
+            //    processImage_3.Source = processImageBitMap_3;
+            //}));
         }
         private void initDataArray()
         {
@@ -111,14 +110,37 @@ namespace KinectDepthImageProcessing
             //enhPixelData = new byte[DepthStreamFrameWidth * DepthStreamFrameHeight * bytePerPixel];
         }
 
-        private void initDotsArray()
+        private Dot[] initDotsArray(Dot[] tempArray)
         {
-            dotY = cubeWidth * 5;
+            Random randomHeight = new Random(3);
+            Random randomWidth = new Random(2);
             //DotsArray
-            for(int i=0;i<DotsArray.Length;i++)
+            for (int i = 0; i < tempArray.Length; i++)
             {
-                DotsArray[i] = new Dot((i + 1) * cubeWidth*4, dotY, cubeWidth,3);
+                
+
+                int tempHeight = -1;
+                int tempWidth = -1;
+                while (tempHeight < 2)
+                {
+                    tempHeight = randomHeight.Next(8);
+                }
+
+                while (tempWidth <6)
+                {
+                    tempWidth = randomWidth.Next(9);
+                }
+                //dot height
+                int dotY = cubeWidth * tempHeight;
+                int dotX=(i + 1) * cubeWidth * tempWidth;
+                if (i == 0)
+                {
+                    tempWidth = 2;
+                }
+
+                tempArray[i] = new Dot(dotX, dotY, cubeWidth, 2);
             }
+            return tempArray;
         }
 
 
@@ -150,14 +172,17 @@ namespace KinectDepthImageProcessing
             //基础景深范围限定 并 处理
             enhPixelData = depthProcessManager.BasicDepthProcessing(enhPixelData, pixelData, depthFrame, loThreashold, hiThreshold);
 
+            //优化 - 影响边缘
+            enhPixelData = depthProcessManager.OptimizeDepthProcessing(enhPixelData, depthFrame);
+
             //add dots
-            enhPixelData = depthProcessManager.DrawDotsProcessing(enhPixelData, DotsArray, depthFrame.Width, depthFrame.Height);
+            enhPixelData = depthProcessManager.DrawDotsProcessing(enhPixelData, DotsArrayList[kinectID], depthFrame.Width, depthFrame.Height);
 
             //像素马赛克化
             enhPixelData = depthProcessManager.MosaicProcessing(enhPixelData, cubeWidth, depthFrame.Width, depthFrame.Height);
 
             //dot collision detection
-            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArray, depthFrame.Width, depthFrame.Height, 4);
+            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArrayList[kinectID], depthFrame.Width, depthFrame.Height, 4);
 
             //绘制线 //方格
             enhPixelData = depthProcessManager.DrawLineProcessing(enhPixelData, cubeHeight, cubeWidth, lineColor, lineWidth, minColorByte, depthFrame);
@@ -184,38 +209,42 @@ namespace KinectDepthImageProcessing
                     }));
                     break;
                 case 2:
-                    this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        //直接 new bitmap, 赋予processImage
-                        //processImage_2.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
-                        //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
-                        processImageBitMap_3.WritePixels(processImageBitmapRect_3, enhPixelData, processImageStride_3, 0);
-                    }));
+                    //this.processImage_3.Dispatcher.BeginInvoke(new Action(() =>
+                    //{
+                    //    //直接 new bitmap, 赋予processImage
+                    //    //processImage_2.Source = BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, enhPixelData, depthFrame.Width * bytePerPixel);
+                    //    //事先处理好 bitmap, 并与 processImage 事先建立 source 关系
+                    //    processImageBitMap_3.WritePixels(processImageBitmapRect_3, enhPixelData, processImageStride_3, 0);
+                    //}));
                     break;
 
             }
 
-
-            int countDisappearDot = 0;
-
-            //恢复所有点
-            for (int i = 0; i < DotsArray.Length; i++)
+            for (int count = 0; count < DotsArrayList.Count; count++)
             {
-                if (DotsArray[i].dotState == DotState.DISAPPEAR)
+
+                int countDisappearDot = 0;
+                Dot[] temp = DotsArrayList[count];
+                //恢复所有点
+                for (int i = 0; i < temp.Length; i++)
                 {
-                    countDisappearDot++;
-                }
-            }
-            if (countDisappearDot >= DotsArray.Length)
-            {
-                for (int i = 0; i < DotsArray.Length; i++)
-                {
-                    if (DotsArray[i].dotState == DotState.DISAPPEAR)
+                    if (temp[i].dotState == DotState.DISAPPEAR)
                     {
-                        DotsArray[i].dotState = DotState.WAIT;
+                        countDisappearDot++;
+                    }
+                }
+                if (countDisappearDot >= temp.Length)
+                {
+                    for (int i = 0; i < temp.Length; i++)
+                    {
+                        if (temp[i].dotState == DotState.DISAPPEAR)
+                        {
+                            temp[i].dotState = DotState.WAIT;
+                        }
                     }
                 }
             }
+           
 
         }
 
