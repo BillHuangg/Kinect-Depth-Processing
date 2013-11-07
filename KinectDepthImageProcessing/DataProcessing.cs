@@ -182,7 +182,7 @@ namespace KinectDepthImageProcessing
             enhPixelData = depthProcessManager.MosaicProcessing(enhPixelData, cubeWidth, depthFrame.Width, depthFrame.Height);
 
             //dot collision detection
-            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArrayList[kinectID], depthFrame.Width, depthFrame.Height, 4);
+            depthProcessManager.DotsCollisionDetection(enhPixelData, DotsArrayList[kinectID], depthFrame.Width, depthFrame.Height, 1);
 
             //绘制线 //方格
             enhPixelData = depthProcessManager.DrawLineProcessing(enhPixelData, cubeHeight, cubeWidth, lineColor, lineWidth, minColorByte, depthFrame);
@@ -239,7 +239,8 @@ namespace KinectDepthImageProcessing
                     {
                         if (temp[i].dotState == DotState.DISAPPEAR)
                         {
-                            temp[i].dotState = DotState.WAIT;
+                            temp[i].resetDot();
+                            //temp[i].dotState = DotState.WAIT;
                         }
                     }
                 }

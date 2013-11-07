@@ -12,7 +12,7 @@ namespace KinectDepthImageProcessing
         //get the min color limitation for distinguish the background , line and the people image.
         private Int32 minColorLimitation = 0;
 
-        private bool isNotOutOfLimitation(int index,int min,int max)
+        public bool isNotOutOfLimitation(int index,int min,int max)
         {
             return (index >= min && index <= max);
         }
@@ -125,29 +125,16 @@ namespace KinectDepthImageProcessing
             for (int i = 0; i < dots.Length; i++)
             {
                 Dot dot = dots[i];
-                if (dot.dotState != DotState.BLANK && dot.dotState != DotState.DISAPPEAR)
+                if (dot.dotState ==DotState.WAIT)
                 {
-                    //int positionIndex = (dot.XPosition + (dot.YPosition * width)) * bytePerPixel;
-
-                    //get the dot postion in the left top of the big dot
-                    //int leftTopPositionIndex = (dot.XPosition - dot.BlockNum / 2 * dot.BlockLength + ((dot.YPosition - dot.BlockNum / 2 * dot.BlockLength) * width)) * bytePerPixel;
-                    int leftTopDotPositionX = dot.XPosition - dot.BlockNum / 2* dot.BlockLength;
-                    int leftTopDotPositionY = dot.YPosition - dot.BlockNum / 2 * dot.BlockLength;
-                    for (int y = 0; y < dot.BlockNum; y++)
-                    {
-                        for (int x = 0; x < dot.BlockNum; x++)
-                        {
-                            int positionIndex = (leftTopDotPositionX + x * dot.BlockLength + ((leftTopDotPositionY + y * dot.BlockLength) * width)) * bytePerPixel;
-                            if (isNotOutOfLimitation(positionIndex, 0, temp.Length))
-                            {
-                                // b g r => yellow
-                                temp[positionIndex] = 111;
-                                temp[positionIndex + 1] = 247;
-                                temp[positionIndex + 2] = 236;
-                            }
-                        }
-                    }
+                    temp = dot.NormalRenderingDot(temp, width, bytePerPixel);
                 }
+                // play animation 
+                else if (dot.dotState == DotState.ANIMATING)
+                {
+                    temp = dot.AnimationRenderingDot(temp, width, bytePerPixel);
+                }
+
             }
             return temp;
         }
@@ -172,6 +159,7 @@ namespace KinectDepthImageProcessing
                 Dot dot = dots[i];
                 if (dot.dotState != DotState.BLANK
                     && dot.dotState != DotState.DISAPPEAR
+                    &&dot.dotState!=DotState.ANIMATING //in the animation , no detection
                     && detectionLevel >= 1
                     && detectionLevel <= 5)
                 {
@@ -180,7 +168,13 @@ namespace KinectDepthImageProcessing
                     //int test = detectionLevel * dot.Length;
                     if (CheckNearDifferentPixel(temp, positionIndex, detectionLevel, width, height,dot.BlockLength))
                     {
-                        dot.dotState = DotState.DISAPPEAR;
+                        //dot.dotState = DotState.DISAPPEAR;
+                        //turn into animation
+                        
+                        dot.dotState = DotState.ANIMATING;
+                        dot.startAnimation();
+
+                        //dot.dotState = DotState.DISAPPEAR;
                     }
 
                 }
