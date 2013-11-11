@@ -192,6 +192,7 @@ namespace KinectDepthImageProcessing
 
                 //初始化 数组相关变量
                 initProcessImagesArray(kinectID);
+                initKinectIDdepthPixelList(kinectID);
 
                 kinectSensor.Start();
             }

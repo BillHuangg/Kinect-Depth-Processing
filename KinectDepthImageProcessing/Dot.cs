@@ -11,8 +11,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 using System.ComponentModel; 
+
+
+
+
 namespace KinectDepthImageProcessing
 {
     enum DotState
@@ -85,6 +88,9 @@ namespace KinectDepthImageProcessing
                                     new Point(1, 1) };
 
 
+        //sound
+        //private MediaPlayer Soundplayer;
+
         //reset all the values
         public void resetDot()
         {
@@ -92,6 +98,8 @@ namespace KinectDepthImageProcessing
             isStartAnimation = false;
             AnimationLifeTimer = 0;
             currentFragmentStage = -1;
+
+            isPlaying = false;
         }
 
 
@@ -199,7 +207,8 @@ namespace KinectDepthImageProcessing
             if (AnimationLifeTimer % AnimationBlockNumChangingSpeed == 0)
             {
                 //expand in the center
-                my_AnimationBlockNums += 2;
+                //my_AnimationBlockNums += 2;
+                my_AnimationBlockNums += 1;
             }
             return my_AnimationBlockNums;
         }
@@ -224,11 +233,34 @@ namespace KinectDepthImageProcessing
 
 
         }
+        private bool isPlaying = false;
+        private void PlayAnimationAudio()
+        {
+            //if(Soundplayer.)
+            if (!isPlaying)
+            {
+                MediaPlayer Soundplayer = new MediaPlayer();
 
+                Soundplayer.Open(new Uri("Resources/Audio/explodeSound_2.mp3", UriKind.Relative));
+                ///Soundplayer.MediaEnded += new EventHandler(mediaEnded);
+                Soundplayer.Play();
+                isPlaying = true;
+            }
+        }
+        //private void mediaEnded(object sender, EventArgs e)
+        //{
+        //    MediaPlayer player = (MediaPlayer)sender;
+        //    player.Close();
+        //    isPlaying = false;
+        //}
         //set 4 fragments
         //set 5 frame for test.
         private byte[] PlayAnimationFragment(byte[] temp, int width, int bytePerPixel, DepthProcessManager tempManager)
         {
+            //play sound
+            PlayAnimationAudio();
+
+
             if (currentFragmentStage == -1)
             {
                 //init fragment positions
@@ -337,6 +369,9 @@ namespace KinectDepthImageProcessing
 
             FragmentsPosition = new Point[4];
             initFragmentMovePathList();
+
+
+            
         }
 
         public AnimationMode animationMode

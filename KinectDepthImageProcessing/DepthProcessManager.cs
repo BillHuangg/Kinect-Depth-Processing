@@ -26,14 +26,16 @@ namespace KinectDepthImageProcessing
         /// <param name="loThreashold"></param>
         /// <param name="hiThreshold"></param>
         /// <returns></returns>
+        /// 
         public byte[] BasicDepthProcessing(byte[] result, short[] original, DepthImageFrame depthFrame, Int32 loThreashold, Int32 hiThreshold)
+        //public byte[] BasicDepthProcessing(byte[] result, Int32[] original, DepthImageFrame depthFrame, Int32 loThreashold, Int32 hiThreshold)
         {
             Int32 depth;
             Int32 gray;
             Int32 alpha;
             for (int i = 0, j = 0; i < original.Length; i++, j += bytePerPixel)
             {
-                depth = original[i] >> DepthImageFrame.PlayerIndexBitmaskWidth;
+                depth = original[i]>>DepthImageFrame.PlayerIndexBitmaskWidth;
                 if (depth < loThreashold || depth > hiThreshold)
                 {
                     //this gray must be larger than minColorByte
@@ -49,10 +51,10 @@ namespace KinectDepthImageProcessing
                     gray = 255 - (temp * 20);
                     alpha = 255;
 
-                    //从左到右获取边缘数据 
+                    ////从左到右获取边缘数据 
                     if ((i + 1) < original.Count())
                     {
-                        Int32 nextdepth = original[i + 1] >> DepthImageFrame.PlayerIndexBitmaskWidth;
+                        Int32 nextdepth = original[i + 1] >> DepthImageFrame.PlayerIndexBitmaskWidth; 
                         if (nextdepth < loThreashold || nextdepth > hiThreshold)
                         {
                             gray = 22;

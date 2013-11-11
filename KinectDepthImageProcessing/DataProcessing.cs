@@ -41,14 +41,16 @@ namespace KinectDepthImageProcessing
 
         //store each frame depth data for all kinects
         private short[] depthPixelData;
+        private List<List<short[]>> KinectIDdepthPixelList;
+
 
         //颜色模式: rgba32
         //正常运行: format Resolution640x480Fps30
         //          cubeWidth=cubeHeight=30 lineWidth=5
 
         //景深范围
-        Int32 loThreashold = 1900;
-        Int32 hiThreshold = 2900;
+        Int32 loThreashold = 1500;
+        Int32 hiThreshold =3000;
 
         //像素格式大小
         Int32 bytePerPixel = 4;
@@ -99,16 +101,40 @@ namespace KinectDepthImageProcessing
             //    processImage_3.Source = processImageBitMap_3;
             //}));
         }
+
+        private void initKinectIDdepthPixelList(int KinectID)
+        {
+            //List<short[]>[] KinectIDdepthPixelList;
+            KinectIDdepthPixelList=new List<List<short[]>>();
+            for (int i = 0; i < KinectArray.Count(); i++)
+            {
+                List<short[]> temp = new List<short[]>();
+                for (int j = 0; j < 3; j++)
+                {
+                    short[] tempShort = new short[DepthStreamFramePixelDataLength];
+                    temp.Add( tempShort);
+                }
+                    //new short[DepthStreamFramePixelDataLength];
+                KinectIDdepthPixelList.Add(temp);
+
+            }
+
+
+        }
+
+
         private void initDataArray()
         {
             //预先初始化原始深度数据数组
             depthPixelData = new short[DepthStreamFramePixelDataLength];
-
             //预先初始化图像处理数据数组
             //或不需建立 直接于处理函数中建立局部变量即可
             //效率问题
             //enhPixelData = new byte[DepthStreamFrameWidth * DepthStreamFrameHeight * bytePerPixel];
         }
+
+
+
 
         private Dot[] initDotsArray(Dot[] tempArray)
         {
@@ -121,9 +147,9 @@ namespace KinectDepthImageProcessing
 
                 int tempHeight = -1;
                 int tempWidth = -1;
-                while (tempHeight < 2)
+                while (tempHeight < 4)
                 {
-                    tempHeight = randomHeight.Next(8);
+                    tempHeight = randomHeight.Next(10);
                 }
 
                 while (tempWidth <6)
@@ -143,7 +169,8 @@ namespace KinectDepthImageProcessing
             return tempArray;
         }
 
-
+        //private int countFiveFrame = 0;
+        //private bool isFull = false;
         void DepthFrameReadyToProcess(DepthImageFrame temp, int kinectID)
         {
 
@@ -151,18 +178,121 @@ namespace KinectDepthImageProcessing
 
             if (lastDepthFrame != null)
             {
-                //depthPixelData = new short[lastDepthFrame.PixelDataLength];
+                depthPixelData = new short[lastDepthFrame.PixelDataLength];
                 lastDepthFrame.CopyPixelDataTo(depthPixelData);
+                //KinectIDdepthPixelList[kinectID][countFiveFrame] = depthPixelData;
+
+
+                //计时
+                //countFiveFrame++;
+                //每5帧执行一次
+                //if (isFull)
+                //{
+                //    Int32[] tempData = CalculateAverageDepthData(KinectIDdepthPixelList[kinectID]);
+                //    //处理数据并显示
+                //    DataProcess(lastDepthFrame, tempData, kinectID);
+                //}
+                //else if (countFiveFrame >= KinectIDdepthPixelList[kinectID].Count())
+                //{
+                //    Int32[] tempData = CalculateAverageDepthData(KinectIDdepthPixelList[kinectID]);
+                //    //处理数据并显示
+                //    DataProcess(lastDepthFrame, tempData, kinectID);
+                //    //reset
+                //    //countFiveFrame = 0;
+                //    if (!isFull)
+                //    {
+                //        isFull = true;
+                //    }
+                    
+                //}
+                //if (countFiveFrame >= KinectIDdepthPixelList[kinectID].Count())
+                //{
+                    
+                //    //reset
+                //    countFiveFrame = 0;
+                //}
+
+                //if (countFiveFrame >= KinectIDdepthPixelList[kinectID].Count())
+                //{
+                //    Int32[] tempData = CalculateAverageDepthData(KinectIDdepthPixelList[kinectID]);
+                //    //处理数据并显示
+                //    DataProcess(lastDepthFrame, tempData, kinectID);
+                //    //reset
+                //    //countFiveFrame = 0;
+                //    if (!isFull)
+                //    {
+                //        isFull = true;
+                //    }
+                //    countFiveFrame = 0;
+                //}
+
 
                 //处理数据并显示
                 DataProcess(lastDepthFrame, depthPixelData, kinectID);
-
             }
         }
+        //private Int32[] CalculateAverageDepthData(List<short[]> depthArray)
+        //{
+        //    //short[] result = depthArray[0];
 
+        //    Int32[] result = new Int32[depthArray[0].Count()];
 
+            
+                
+        //        //depth = original[i] >> DepthImageFrame.PlayerIndexBitmaskWidth;
+        //    for (int i = 0; i < result.Count(); i++)
+        //    {
+        //        Int32 all = 0;
+        //        int countBlank = 0;
+        //        int countFull = 0;
+        //        for (int j = 0; j < depthArray.Count; j++)
+        //        {
+        //            Int32 each = depthArray[j][i] >> DepthImageFrame.PlayerIndexBitmaskWidth;
+        //            //if (each > 1000 || each < 4000)
+        //            //{
+        //            all += each;
+        //            if (each < 1000)
+        //            {
+        //                countBlank++;
+        //            }
+        //            else if (each > 3000)
+        //            {
+        //                countFull++;
+        //            }
+        //            //}
+        //        }
+        //        Int32 temp;
+        //        if (countBlank >= 1)
+        //        {
+        //            temp = 2000;
+        //        }
+        //        else if (countFull >= 1)
+        //        {
+        //            temp = 0;
+        //        }
+        //        //if (countBlank >= countFull)
+        //        //{
+        //        //    temp=2000;
+        //        //}
+        //        //else if (countBlank < countFull)
+        //        //{
+        //        //    temp =0;
+        //        //}
+        //        else
+        //        {
+        //            temp = all / depthArray.Count;
+        //        }
+        //        result[i] = temp;
+        //    }
+        //        //calculation
+
+            
+
+        //    return result;
+        //}
 
         private void DataProcess(DepthImageFrame depthFrame, short[] pixelData, int kinectID)
+        //private void DataProcess(DepthImageFrame depthFrame, Int32[] pixelData, int kinectID)
         {
             //直接建立局部变量
             byte[] enhPixelData = new byte[depthFrame.Width * depthFrame.Height * bytePerPixel];
